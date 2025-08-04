@@ -73,5 +73,3 @@ void resize_vector(vector *v, int size){
     
 
 };
-
-int main(){};
