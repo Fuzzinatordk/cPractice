@@ -39,14 +39,15 @@ void push_back(vector *v, void *elements)
 void get_vector_element(vector *v, int index, void *result)
 {
     memcpy(result, (char*)v->data + index * v->element_size, v->element_size);
-}
+};
+
 void pop_back_vector_element(vector *v, void *result){
     if(v->size <= 0){
         return;
     }
 
     void *last_elem_ptr = (char*)v->data + (v->size - 1) * v->element_size;
-    memcpy(&result, last_elem_ptr, v->element_size);
+    memcpy(result, last_elem_ptr, v->element_size);
     
     v->size--;
 
@@ -64,7 +65,34 @@ void pop_front_vector_element(vector *v, void *result){
     v->size--;
 
     return;
-}
+};
+
+void remove_vector_element_at_index(vector *v, int index)
+{
+    if (index < 0 || index >= v->size) {
+        return;
+    }
+
+    void* target = (char*)v->data + index * v->element_size;
+    memset(target, 0, v->element_size);
+};
+
+void resize_vector(vector *v, int size)
+{
+    if(size < 0){
+        return;
+    }
+
+    void* new_data = realloc(v->data, size * v->element_size);
+    if (new_data == NULL && size > 0) {
+        return;
+    }
+    v->data = new_data;
+    v->size = size;
+    v->capacity = size;
+    
+
+};
 
 int main(){
     vector v;
@@ -105,5 +133,32 @@ int main(){
         printf("Element after pop %u is containing %u '\n'", i, value);
     
     }
+
+    int old_value;
+    get_vector_element(&v, 5, &old_value);
+    printf("Element before removal at index: %d, value: %d '\n'", 5, old_value);
+    remove_vector_element_at_index(&v, 5);
+    int new_value;
+    get_vector_element(&v, 5, &new_value);
+    printf("Element before removal at index: %d, value: %d '\n'", 5, new_value);
+
+    for(int i = 0; i < v.size; i++)
+    {
+        int value;
+        get_vector_element(&v, i, &value);
+        printf("Element before resizing, index: %u is containing value: %u '\n'", i, value);
+    
+    }
+    resize_vector(&v, 5);
+    for(int i = 0; i < v.size; i++)
+    {
+        int value;
+        get_vector_element(&v, i, &value);
+        printf("Element after resizing, index: %u is containing value: %u '\n'", i, value);
+    
+    }
+
     free(v.data);
+
+
 };
