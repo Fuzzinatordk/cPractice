@@ -18,7 +18,7 @@ int main() {
         perror("Socket creation failed");
         return -1;
     }
-
+    char closeSocketCommand = '_';
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
@@ -76,6 +76,7 @@ int main() {
         sleep(1);
         memset(client_buffer, 0, total_packet_size);
     }
+    send(sock, &closeSocketCommand, sizeof(char), 0);
     free(client_buffer);
     close(sock);
     return 0;
