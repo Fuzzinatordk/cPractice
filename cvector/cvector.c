@@ -1,10 +1,11 @@
 #include "cvector.h"
 
 
-void init_vector(vector *v, size_t element){
+void init_vector(vector *v, size_t element, vectorDataTypes type){
     v->size = 0; 
     v->capacity = 4;
     v->element_size = element;
+    v->type = type;
     v->data = malloc(v->capacity * v->element_size);
 };
 
@@ -70,6 +71,4 @@ void resize_vector(vector *v, int size){
     v->data = new_data;
     v->size = size;
     v->capacity = size;
-    
-
 };

@@ -7,12 +7,12 @@
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
-
+#define VECTOR_SIZE 2
 int main() {
     int sock = 0;
     struct sockaddr_in serv_addr;
     char *client_buffer = malloc(BUFFER_SIZE);
-
+    vector *vectorContainer[2];
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
         perror("Socket creation failed");
@@ -31,29 +31,50 @@ int main() {
         return -1;
     }
 
-    while(client_buffer[0] != 'Q')
+    vector *charVector = malloc(sizeof(vector));
+    init_vector(charVector, sizeof(char), TYPE_CHAR);
+
+    vector *intVector = malloc(sizeof(vector));
+    init_vector(intVector, sizeof(int), TYPE_INT);
+
+    vectorContainer[0] = charVector;
+    vectorContainer[1] = intVector;
+
+    for(int i = 0; i < 20; i++){
+        push_back(vectorContainer[1],&i);
+    }
+
+    char *name = "emil";
+    for (int i = 0; i < strlen(name); i++) {
+        push_back(vectorContainer[0], &name[i]);
+    }  
+    for(int i = 0; i < VECTOR_SIZE; i++)
     {
-        client_buffer = memset(client_buffer, 0, BUFFER_SIZE);
-        vector clientVector;
-        init_vector(&clientVector, sizeof(int));
-        for(int i = 0; i < 20; i++){
-            push_back(&clientVector,&i);
+        int total_data_size = vectorContainer[i]->size * vectorContainer[i]->element_size;
+        int total_packet_size = 2 * sizeof(int) + sizeof(size_t) + sizeof(vectorDataTypes) + total_data_size;
+        char *temp_ptr = realloc(client_buffer, total_packet_size);
+        if (!temp_ptr) {
+            perror("Realloc failed");
+            free(client_buffer);
+            return -1;
         }
-        int total_data_size = clientVector.size * clientVector.element_size;
-        int total_packet_size = 2 * sizeof(int) + sizeof(size_t) + total_data_size;
-        char *temp_ptr = realloc(client_buffer,total_packet_size);
         client_buffer = temp_ptr;
         char *client_ptr = client_buffer;
 
-        memcpy(client_ptr, &clientVector.size, sizeof(int)); client_ptr += sizeof(int);
-        memcpy(client_ptr, &clientVector.capacity, sizeof(int)); client_ptr += sizeof(int);
-        memcpy(client_ptr, &clientVector.element_size, sizeof(size_t)); client_ptr += sizeof(size_t);
+        memcpy(client_ptr, &vectorContainer[i]->size, sizeof(int)); 
+        client_ptr += sizeof(int);
+        memcpy(client_ptr, &vectorContainer[i]->capacity, sizeof(int)); 
+        client_ptr += sizeof(int);
+        memcpy(client_ptr, &vectorContainer[i]->element_size, sizeof(size_t)); 
+        client_ptr += sizeof(size_t);
+        memcpy(client_ptr, &vectorContainer[i]->type, sizeof(vectorDataTypes));
+        client_ptr += sizeof(vectorDataTypes);
+        memcpy(client_ptr, vectorContainer[i]->data, total_data_size);
 
-        memcpy(client_ptr, clientVector.data, total_data_size);
-
-        send(sock, client_buffer, strlen(client_buffer), 0);
+        send(sock, client_buffer, total_packet_size, 0);
         printf("Message sent to server.\n");
-        break;
+        sleep(1);
+        memset(client_buffer, 0, total_packet_size);
     }
     free(client_buffer);
     close(sock);

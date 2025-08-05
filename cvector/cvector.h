@@ -8,14 +8,21 @@ typedef enum {
     true
 } bool;
 
+typedef enum{
+    TYPE_INT,
+    TYPE_CHAR,
+    TYPE_FLOAT
+} vectorDataTypes;
+
 typedef struct{
     void* data;
     int size;
     int capacity;
     size_t element_size;
-}vector;
+    vectorDataTypes type;
+} vector;
 
-void init_vector(vector *v, size_t element);
+void init_vector(vector *v, size_t element, vectorDataTypes type);
 
 void check_size_and_reallocate(vector *v);
 
@@ -28,4 +35,7 @@ void pop_back_vector_element(vector *v, void *result);
 void pop_front_vector_element(vector *v, void *result);
 
 void remove_vector_element_at_index(vector *v, int index);
+
+void resize_vector(vector *v, int size);
+
 #endif
