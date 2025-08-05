@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include "../cvector/cvector.h"
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
@@ -12,7 +13,6 @@ int main() {
     int sockets;
     struct sockaddr_in address;
     char buffer[BUFFER_SIZE] = {0};
-    
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == 0) {
         perror("socket failed");
@@ -27,7 +27,7 @@ int main() {
         close(server_fd);
         exit(EXIT_FAILURE);
     }
-    printf("Server running! '\n'");
+    printf("Server running");
     while (1)
     {
         if (listen(server_fd, 3) < 0) {
@@ -46,8 +46,26 @@ int main() {
         while(buffer[0] != 'Q')
         {
             memset(buffer, 0, BUFFER_SIZE);
-            read(sockets, buffer, BUFFER_SIZE);
-            printf("Received from client: %s\n", buffer);
+            int bytes_recieved = recv(sockets, buffer, BUFFER_SIZE, 0);
+            if (bytes_recieved <= 0){
+                continue;
+                sleep(1);
+            }
+            vector serverVector;
+            char *server_ptr = buffer;
+
+            memcpy(&serverVector.size, server_ptr, sizeof(int));
+            server_ptr += sizeof(int);
+            memcpy(&serverVector.capacity, server_ptr, sizeof(int));
+            server_ptr += sizeof(int);
+            memcpy(&serverVector.element_size, server_ptr, sizeof(size_t));
+            server_ptr += sizeof(size_t);
+
+            int total_recieved_data_size = serverVector.size * serverVector.element_size;
+            serverVector.data = malloc(total_recieved_data_size);
+            memcpy(serverVector.data, server_ptr, total_recieved_data_size);
+
+            printf("Received a vector from client. with size %u '\n'", serverVector.size);
             sleep(1);
         }
 
